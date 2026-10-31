@@ -35,18 +35,27 @@
   .dashboard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:26px;box-shadow:0 1px 4px rgba(20,40,70,.05)}
   .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
   .kpi{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden}
-  .kpi .v{font-size:30px;font-weight:800;line-height:1;color:var(--primary-d)}
-  .kpi .l{margin-top:8px;font-size:13px;color:var(--muted);font-weight:600}
-  .kpi .l .en{display:block;font-size:11px;font-weight:400}
+  .kpi .v{font-size:34px;font-weight:800;line-height:1;color:var(--primary-d)}
+  .kpi .l{margin-top:10px;font-size:16px;color:var(--ink);font-weight:800}
+  .kpi .l .en{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-top:2px}
   .kpi.warn .v{color:var(--warn)} .kpi.ok .v{color:var(--ok)} .kpi.accent .v{color:var(--accent)}
   .kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--primary)}
   .kpi.ok::after{background:var(--ok)} .kpi.warn::after{background:var(--warn)} .kpi.accent::after{background:var(--accent)}
-  /* discipline filter chips (style references dashboard work-ledger chips) */
-  .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 20px;padding:11px 14px;background:var(--soft);border:1px solid var(--line);border-radius:12px}
-  .filters .fl-label{font-size:13px;font-weight:700;color:var(--muted);margin-right:6px}
-  .chip{display:inline-flex;flex-direction:column;line-height:1.15;padding:5px 13px;border-radius:20px;border:1.5px solid var(--line);background:#fff;color:var(--primary-d);font-weight:700;font-size:12.5px;cursor:pointer;transition:all .15s;user-select:none}
-  .chip .en-sub{font-size:12.5px;font-weight:500;opacity:.9}
-  .chip:hover{box-shadow:0 1px 5px rgba(20,40,70,.18)}
+  /* ── filter panel: two sets of colored blocks (discipline left / status right) ── */
+  .filter-panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:0 0 22px;box-shadow:0 1px 4px rgba(20,40,70,.05)}
+  .filter-bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px 32px}
+  .filter-set{display:inline-flex;flex-wrap:wrap;gap:8px;align-items:center}
+  /* colored block (multi-select toggle): selected=filled color+white, unselected=white+colored border/text */
+  .st-block{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;min-width:86px;padding:7px 16px;border-radius:9px;border:1.5px solid;background:#fff;font-weight:700;font-size:13px;cursor:pointer;transition:all .15s;user-select:none}
+  .st-block .zh,.st-block .en-sub{font-size:13px;font-weight:700;line-height:1.2}
+  .st-block .en-sub{font-weight:600;opacity:.92;margin-top:1px}
+  .st-block:hover{transform:translateY(-1px);box-shadow:0 1px 5px rgba(20,40,70,.15)}
+  .st-block.active{color:#fff;border-color:transparent;box-shadow:0 2px 7px rgba(20,40,70,.25)}
+  .filter-footer{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+  .filter-summary{font-size:13px;font-weight:700;color:var(--muted)}
+  .filter-summary b{color:var(--primary-d);font-variant-numeric:tabular-nums}
+  .btn-reset{margin-left:auto;font-size:12.5px;font-weight:700;color:var(--primary-d);background:#fff;border:1.5px solid var(--primary);border-radius:20px;padding:6px 15px;cursor:pointer;transition:all .15s;user-select:none}
+  .btn-reset:hover{background:var(--primary);color:#fff}
   /* discipline tag pill inside table — both 中/EN inside the colored box */
   .disc-tag{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 11px;border-radius:7px;color:#fff;font-weight:700;font-size:12.5px;line-height:1.25;white-space:nowrap}
   .disc-tag .dz{font-weight:700;font-size:12.5px}
@@ -90,7 +99,7 @@
   tbody tr:hover{background:#eef5fc}
   td .zh{font-weight:600;font-size:14px}
   td .en{font-size:14px;color:#46586a;margin-top:2px}
-  td.ref{font-family:"Consolas",monospace;font-size:12.5px;color:var(--primary-d);white-space:nowrap}
+  td.ref{font-family:"Consolas",monospace;font-size:15px;font-weight:700;color:var(--primary-d);white-space:nowrap}
   td .miss{color:#b7c4d1;font-style:italic}
   td.date{white-space:nowrap;font-variant-numeric:tabular-nums}
   table th.col-title, table td.col-title{min-width:240px;width:32%}
@@ -107,7 +116,7 @@
   footer{max-width:1200px;margin:0 auto;padding:10px 20px 40px;color:var(--muted);font-size:12px;text-align:center}
   @media(max-width:640px){
     .topbar h1{font-size:18px}.topbar h1 .en{font-size:14px}
-    .kpi .v{font-size:24px}.nav{top:70px}
+    .kpi .v{font-size:28px}.nav{top:70px}
   }
 </style>
 </head>
@@ -153,12 +162,21 @@
     </div>
   </section>
 
-  <div class="filters" id="discFilters"></div>
+  <div class="filter-panel">
+    <div class="filter-bar">
+      <div class="filter-set" id="discTabs"></div>
+      <div class="filter-set" id="statusBlocks"></div>
+    </div>
+    <div class="filter-footer">
+      <span class="filter-summary" id="filterSummary"></span>
+      <button class="btn-reset" id="btnReset" type="button">重置 / Reset</button>
+    </div>
+  </div>
   <main id="sections"></main>
 </div>
 
 <script>
-const DATA = {"source": "待辦任務清單20261030_改進版.xlsx", "updated": "2026-10-30", "categories": [{"key": "EDMS", "zh": "EDMS 文件審批", "en": "", "count": 20, "items": [{"row": 2, "ref_no": "CHEC-MIA-DWG-00005-C", "title_zh": "陸域地基圖紙報審", "title_en": "Land foundation drawings submitted for review", "sender": "", "start": "2026-09-22", "deadline": "2026-09-29", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "嚴重滯後"}, {"row": 3, "ref_no": "CHEC-MIA-DWG-00010-B", "title_zh": "混凝土攪拌站基礎及安裝設計圖紙報審", "title_en": "Concrete mixing station foundation and installation design drawings submitted for review", "sender": "", "start": "2026-10-09", "deadline": "2026-10-16", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後"}, {"row": 4, "ref_no": "CHEC-MIA-DWG-00017-A", "title_zh": "橋樑優化工程設計文件報審", "title_en": "Bridge optimization project design documents submitted for review", "sender": "", "start": "2026-09-23", "deadline": "2026-09-30", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後"}, {"row": 5, "ref_no": "CHEC-MIA-MAT-00067-B", "title_zh": "製漿系統上部結構空壓機", "title_en": "Pulping system superstructure air compressor", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 6, "ref_no": "CHEC-MIA-MAT-00079-B", "title_zh": "集中製漿系統配電箱櫃資料上報", "title_en": "Data reporting of distribution cabinets of centralized pulping system", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 7, "ref_no": "CHEC-MIA-MAT-00093-C", "title_zh": "監控系統（海康威視）", "title_en": "Monitoring system (Hikvision)", "sender": "", "start": "2026-09-30", "deadline": "2026-10-07", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "嚴重滯後"}, {"row": 8, "ref_no": "CHEC-MIA-MAT-00097-A", "title_zh": "惰性物料（澳門）", "title_en": "Inert materials (Macau)", "sender": "", "start": "2026-10-05", "deadline": "2026-10-12", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後"}, {"row": 9, "ref_no": "CHEC-MIA-MST-00028-E", "title_zh": "PC-01階段陸域吹填施工方案", "title_en": "PC-01 Phase Land Dredging Construction Plan", "sender": "", "start": "2026-10-23", "deadline": "2026-10-30", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 10, "ref_no": "CHEC-MIA-MST-00049-B", "title_zh": "D區水泥攪拌樁施工方案", "title_en": "Construction plan for cement mixing piles in Area D", "sender": "", "start": "2026-10-27", "deadline": "2026-11-03", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 11, "ref_no": "CHEC-MIA-MST-00055-B", "title_zh": "陸域深層塑料排水板施工方案", "title_en": "Construction plan for deep plastic drainage board in land area", "sender": "", "start": "2026-10-27", "deadline": "2026-11-03", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 12, "ref_no": "CHEC-MIA-MST-00059-A", "title_zh": "MIA臨時電項目施工方案", "title_en": "MIA Temporary Power Project Construction Plan", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 13, "ref_no": "CHEC-MIA-MST-00060-B", "title_zh": "皮帶機電櫃現場驗收測試方案(SAT)", "title_en": "On-site acceptance test plan (SAT) for belt conveyor electrical cabinet", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 14, "ref_no": "CHEC-MIA-MST-00064-B", "title_zh": "混凝土攪拌站基礎施工方案", "title_en": "Foundation construction plan for concrete mixing station", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}, {"row": 15, "ref_no": "CHEC-MIA-RFI-00014-A", "title_zh": "關於道面工程、給排水、導助航等設計圖紙疑問及建議", "title_en": "Questions and suggestions on design drawings for pavement engineering, water supply and drainage, navigation assistance, etc.", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "機坪/Apron", "remarks": "", "status": "進行中"}, {"row": 16, "ref_no": "CHEC-MIA-RPT-00023-A", "title_zh": "上報澳門國際機場擴建工程-填海及機坪建造工程施工監測月報（第十二期8月1日-8月31日）", "title_en": "Report to Macau International Airport Expansion Project-Monthly Construction Monitoring Report for Reclamation and Airport Construction Project (Issue 12, August 1-August 31)", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 17, "ref_no": "CHEC-MIA-RPT-00024-A", "title_zh": "上報既有南北聯絡橋結構健康監測系統評估報告（第十二期8月1日-8月31日）", "title_en": "Report on the evaluation report on the structural health monitoring system of the existing north-south connection bridge (Issue 12, August 1-August 31)", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 18, "ref_no": "CHEC-MIA-TST-00236-A", "title_zh": "中壓臨電工程-備用7#和8#箱式變電站FAT報告", "title_en": "Medium voltage temporary power project-Backup 7#and 8#box-type substation FAT report", "sender": "", "start": "2026-10-12", "deadline": "2026-10-19", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "滯後"}, {"row": 19, "ref_no": "CHEC-MIA-TST-00242-A", "title_zh": "中壓臨電系統-#5箱式變電站現場驗收測試 SAT Report", "title_en": "Medium voltage temporary power system-#5 box-type substation on-site acceptance test SAT Report", "sender": "", "start": "2026-10-13", "deadline": "2026-10-20", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "滯後"}, {"row": 20, "ref_no": "CHEC-MIA-TST-00243-A", "title_zh": "中壓臨電系統-#4箱式變電站現場驗收測試 SAT Report", "title_en": "Medium Voltage Temporary Power System-On-site Acceptance Test for #4 Box-type Substation SAT Report", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 21, "ref_no": "CHEC-MIA-TST-00251-A", "title_zh": "上報D區施工監測初值報告", "title_en": "Submit initial construction monitoring report in Area D", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}]}, {"key": "Email", "zh": "電郵跟進", "en": "", "count": 2, "items": [{"row": 2, "ref_no": "", "title_zh": "橋梁變更估價會議情況", "title_en": "Meeting on Bridge Change Valuation", "sender": "PM - WANG Kun", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}, {"row": 3, "ref_no": "", "title_zh": "DSPA對MIA擴建工程最終報告（停機坪環境影響評估）的意見", "title_en": "Follow-up Actions Required: DSPA's comments on Final Report of MIA Expansion Project - EIA for the Apron", "sender": "ERG - Arnold NG", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "機坪/Apron", "remarks": "", "status": "進行中"}]}, {"key": "Letter", "zh": "信函往來", "en": "", "count": 3, "items": [{"row": 2, "ref_no": "CAM-PID-ERG-0137/2026", "title_zh": "對臨時變電站位置偏差和場地管理的擔憂", "title_en": "Concern Regarding Location Deviation of Temporary Substation and Site Management", "sender": "ERG", "start": "2026-09-29", "deadline": "2026-10-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後"}, {"row": 3, "ref_no": "CHEC-MIA-ER-00357", "title_zh": "請儘快明確“消防船塢與配套登岸點”設計的具體要求", "title_en": "Clarify the specific requirements for the design of \"fireboat dock and supporting landing point\".", "sender": "Contractor", "start": "2026-10-27", "deadline": "2026-11-03", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}, {"row": 4, "ref_no": "CAM-PID-ERG-0149/2026", "title_zh": "回復關於“澳門國際機場擴建工程臨時占用新城填海區E2區部分土地申請事宜”的復函", "title_en": "Reply to the application regarding the temporary occupation of part of the land in Zone E2 of the new urban reclamation area for the MIA expansion project", "sender": "ERG", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}]}]};
+const DATA = {"source": "todo-list-20261030.xlsx", "updated": "2026-10-30", "categories": [{"key": "EDMS", "zh": "EDMS", "en": "", "count": 20, "items": [{"row": 2, "ref_no": "CHEC-MIA-DWG-00005-C", "title_zh": "陸域地基圖紙報審", "title_en": "Land foundation drawings submitted for review", "sender": "", "start": "2026-09-22", "deadline": "2026-09-29", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "嚴重滯後"}, {"row": 3, "ref_no": "CHEC-MIA-DWG-00010-B", "title_zh": "混凝土攪拌站基礎及安裝設計圖紙報審", "title_en": "Concrete mixing station foundation and installation design drawings submitted for review", "sender": "", "start": "2026-10-09", "deadline": "2026-10-16", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後"}, {"row": 4, "ref_no": "CHEC-MIA-DWG-00017-A", "title_zh": "橋樑優化工程設計文件報審", "title_en": "Bridge optimization project design documents submitted for review", "sender": "", "start": "2026-09-23", "deadline": "2026-09-30", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後"}, {"row": 5, "ref_no": "CHEC-MIA-MAT-00067-B", "title_zh": "製漿系統上部結構空壓機", "title_en": "Pulping system superstructure air compressor", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 6, "ref_no": "CHEC-MIA-MAT-00079-B", "title_zh": "集中製漿系統配電箱櫃資料上報", "title_en": "Data reporting of distribution cabinets of centralized pulping system", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 7, "ref_no": "CHEC-MIA-MAT-00093-C", "title_zh": "監控系統（海康威視）", "title_en": "Monitoring system (Hikvision)", "sender": "", "start": "2026-09-30", "deadline": "2026-10-07", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "嚴重滯後"}, {"row": 8, "ref_no": "CHEC-MIA-MAT-00097-A", "title_zh": "惰性物料（澳門）", "title_en": "Inert materials (Macau)", "sender": "", "start": "2026-10-05", "deadline": "2026-10-12", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後"}, {"row": 9, "ref_no": "CHEC-MIA-MST-00028-E", "title_zh": "PC-01階段陸域吹填施工方案", "title_en": "PC-01 Phase Land Dredging Construction Plan", "sender": "", "start": "2026-10-23", "deadline": "2026-10-30", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 10, "ref_no": "CHEC-MIA-MST-00049-B", "title_zh": "D區水泥攪拌樁施工方案", "title_en": "Construction plan for cement mixing piles in Area D", "sender": "", "start": "2026-10-27", "deadline": "2026-11-03", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 11, "ref_no": "CHEC-MIA-MST-00055-B", "title_zh": "陸域深層塑料排水板施工方案", "title_en": "Construction plan for deep plastic drainage board in land area", "sender": "", "start": "2026-10-27", "deadline": "2026-11-03", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 12, "ref_no": "CHEC-MIA-MST-00059-A", "title_zh": "MIA臨時電項目施工方案", "title_en": "MIA Temporary Power Project Construction Plan", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 13, "ref_no": "CHEC-MIA-MST-00060-B", "title_zh": "皮帶機電櫃現場驗收測試方案(SAT)", "title_en": "On-site acceptance test plan (SAT) for belt conveyor electrical cabinet", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 14, "ref_no": "CHEC-MIA-MST-00064-B", "title_zh": "混凝土攪拌站基礎施工方案", "title_en": "Foundation construction plan for concrete mixing station", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}, {"row": 15, "ref_no": "CHEC-MIA-RFI-00014-A", "title_zh": "關於道面工程、給排水、導助航等設計圖紙疑問及建議", "title_en": "Questions and suggestions on design drawings for pavement engineering, water supply and drainage, navigation assistance, etc.", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "機坪/Apron", "remarks": "", "status": "進行中"}, {"row": 16, "ref_no": "CHEC-MIA-RPT-00023-A", "title_zh": "上報澳門國際機場擴建工程-填海及機坪建造工程施工監測月報（第十二期8月1日-8月31日）", "title_en": "Report to Macau International Airport Expansion Project-Monthly Construction Monitoring Report for Reclamation and Airport Construction Project (Issue 12, August 1-August 31)", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 17, "ref_no": "CHEC-MIA-RPT-00024-A", "title_zh": "上報既有南北聯絡橋結構健康監測系統評估報告（第十二期8月1日-8月31日）", "title_en": "Report on the evaluation report on the structural health monitoring system of the existing north-south connection bridge (Issue 12, August 1-August 31)", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 18, "ref_no": "CHEC-MIA-TST-00236-A", "title_zh": "中壓臨電工程-備用7#和8#箱式變電站FAT報告", "title_en": "Medium voltage temporary power project-Backup 7#and 8#box-type substation FAT report", "sender": "", "start": "2026-10-12", "deadline": "2026-10-19", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "滯後"}, {"row": 19, "ref_no": "CHEC-MIA-TST-00242-A", "title_zh": "中壓臨電系統-#5箱式變電站現場驗收測試 SAT Report", "title_en": "Medium voltage temporary power system-#5 box-type substation on-site acceptance test SAT Report", "sender": "", "start": "2026-10-13", "deadline": "2026-10-20", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "滯後"}, {"row": 20, "ref_no": "CHEC-MIA-TST-00243-A", "title_zh": "中壓臨電系統-#4箱式變電站現場驗收測試 SAT Report", "title_en": "Medium Voltage Temporary Power System-On-site Acceptance Test for #4 Box-type Substation SAT Report", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 21, "ref_no": "CHEC-MIA-TST-00251-A", "title_zh": "上報D區施工監測初值報告", "title_en": "Submit initial construction monitoring report in Area D", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}]}, {"key": "Email", "zh": "Email", "en": "", "count": 2, "items": [{"row": 2, "ref_no": "", "title_zh": "橋梁變更估價會議情況", "title_en": "Meeting on Bridge Change Valuation", "sender": "PM - WANG Kun", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}, {"row": 3, "ref_no": "", "title_zh": "DSPA對MIA擴建工程最終報告（停機坪環境影響評估）的意見", "title_en": "Follow-up Actions Required: DSPA's comments on Final Report of MIA Expansion Project - EIA for the Apron", "sender": "ERG - Arnold NG", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "機坪/Apron", "remarks": "", "status": "進行中"}]}, {"key": "Letter", "zh": "Letter", "en": "", "count": 3, "items": [{"row": 2, "ref_no": "CAM-PID-ERG-0137/2026", "title_zh": "對臨時變電站位置偏差和場地管理的擔憂", "title_en": "Concern Regarding Location Deviation of Temporary Substation and Site Management", "sender": "ERG", "start": "2026-09-29", "deadline": "2026-10-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後"}, {"row": 3, "ref_no": "CHEC-MIA-ER-00357", "title_zh": "請儘快明確“消防船塢與配套登岸點”設計的具體要求", "title_en": "Clarify the specific requirements for the design of \"fireboat dock and supporting landing point\".", "sender": "Contractor", "start": "2026-10-27", "deadline": "2026-11-03", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}, {"row": 4, "ref_no": "CAM-PID-ERG-0149/2026", "title_zh": "回復關於“澳門國際機場擴建工程臨時占用新城填海區E2區部分土地申請事宜”的復函", "title_en": "Reply to the application regarding the temporary occupation of part of the land in Zone E2 of the new urban reclamation area for the MIA expansion project", "sender": "ERG", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}]}]};
 const COLORS = {EDMS:'#2f6fb0', Email:'#e8833a', Letter:'#7a5ba6'};
 const ST_COLOR = {'進行中':'#2a9d5c','滯後':'#e8a33a','嚴重滯後':'#d9534f','未設定':'#b7c4d1'};
 const ST_EN = {'進行中':'On Track','滯後':'Delayed','嚴重滯後':'Critically Delayed','未設定':'Not Set'};
@@ -199,7 +217,7 @@ const COLS = {
   ]
 };
 
-const state = {search:'', discipline:null, sort:{}};
+const state = {search:'', disciplines:[], statuses:[], sort:{}};
 
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function titleText(it){return (it.title_zh||'')+' '+(it.title_en||'');}
@@ -432,10 +450,11 @@ function renderNav(){
 /* ---------- Init ---------- */
 function getFiltered(){
   const q=state.search.trim().toLowerCase();
-  const disc=state.discipline;
+  const discSel=state.disciplines, stsSel=state.statuses;
   return DATA.categories.map(c=>{
     let items=c.items.map(it=>({...it,_cat:c.key}));
-    if(disc) items=items.filter(it=>it.discipline===disc);
+    items=items.filter(it=>discSel.includes(it.discipline));
+    items=items.filter(it=>stsSel.includes(it.status));
     if(q){
       items=items.filter(it=>(it.ref_no+' '+titleText(it)+' '+(it.sender||'')+' '+
         (it.discipline||'')+' '+(it.status||'')+' '+(it.remarks||'')).toLowerCase().includes(q));
@@ -443,31 +462,68 @@ function getFiltered(){
     return {...c,items};
   });
 }
-function renderDiscFilters(){
-  const host=document.getElementById('discFilters');
+function stBlockHTML(value, zh, en, col, active){
+  const style=active?`background:${col};border-color:${col};color:#fff`
+                    :`border-color:${col};color:${col};background:#fff`;
+  return `<span class="st-block ${active?'active':''}" data-val="${value}" style="${style}"><span class="zh">${esc(zh)}</span><span class="en-sub">${esc(en)}</span></span>`;
+}
+function renderDiscTabs(){
+  const host=document.getElementById('discTabs');
   const present=new Set();
   DATA.categories.forEach(c=>c.items.forEach(it=>{if(it.discipline)present.add(it.discipline);}));
-  const list=['',...[...present]];
-  host.innerHTML=`<span class="fl-label">範疇篩選 / Filter by Discipline</span>`+
-    list.map(d=>{
-      const active=state.discipline===d;
-      const zh=d?d.split('/')[0]:'全部';
-      const en=d?(d.split('/')[1]||(DISC_EN[d]||'')):'All';
-      const col=d?(DISC_COLOR[d]||'#5B7C99'):'#145da0';
-      const style=active?`background:${col};border-color:${col};color:#fff`
-                        :`background:transparent;color:${col};border-color:${col}`;
-      return `<span class="chip ${active?'active':''}" data-disc="${d}" style="${style}"><span class="zh">${esc(zh)}</span><span class="en-sub">${esc(en)}</span></span>`;
-    }).join('');
-  host.querySelectorAll('.chip').forEach(ch=>{
-    ch.addEventListener('click',()=>{state.discipline=ch.dataset.disc||null;render();});
+  host.innerHTML=[...present].map(d=>{
+    const zh=d.split('/')[0], en=d.split('/')[1]||(DISC_EN[d]||'');
+    const col=DISC_COLOR[d]||'#5B7C99';
+    return stBlockHTML(d, zh, en, col, state.disciplines.includes(d));
+  }).join('');
+  host.querySelectorAll('.st-block').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const v=b.dataset.val, i=state.disciplines.indexOf(v);
+      if(i>=0) state.disciplines.splice(i,1); else state.disciplines.push(v);
+      render();
+    });
   });
 }
-function render(){const g=getFiltered();renderDashboard(g);renderDiscFilters();renderSections(g);}
+function renderStatusBlocks(){
+  const host=document.getElementById('statusBlocks');
+  const order=['進行中','滯後','嚴重滯後','未設定'];
+  const present=new Set();
+  DATA.categories.forEach(c=>c.items.forEach(it=>{if(it.status)present.add(it.status);}));
+  const list=order.filter(s=>present.has(s));
+  host.innerHTML=list.map(s=>{
+    const en=ST_EN[s]||'';
+    const col=ST_COLOR[s]||'#5B7C99';
+    return stBlockHTML(s, s, en, col, state.statuses.includes(s));
+  }).join('');
+  host.querySelectorAll('.st-block').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const v=b.dataset.val, i=state.statuses.indexOf(v);
+      if(i>=0) state.statuses.splice(i,1); else state.statuses.push(v);
+      render();
+    });
+  });
+}
+function allFilterSets(){
+  const d=new Set(), s=new Set();
+  DATA.categories.forEach(c=>c.items.forEach(it=>{if(it.discipline)d.add(it.discipline);if(it.status)s.add(it.status);}));
+  return {d:[...d], s:[...s]};
+}
+function render(){
+  const g=getFiltered();
+  renderDashboard(g);renderDiscTabs();renderStatusBlocks();renderSections(g);
+  const total=g.reduce((a,c)=>a+c.items.length,0);
+  const el=document.getElementById('filterSummary');
+  if(el) el.innerHTML=`已篩選 <b>${total}</b> 項 / ${total} result${total===1?'':'s'}`;
+}
 function init(){
+  const sets=allFilterSets();
+  state.disciplines=sets.d; state.statuses=sets.s;
   document.getElementById('updated').textContent=DATA.updated;
   renderNav();
   render();
   document.getElementById('search').addEventListener('input',e=>{state.search=e.target.value;render();});
+  const br=document.getElementById('btnReset');
+  if(br) br.addEventListener('click',()=>{const s2=allFilterSets();state.disciplines=s2.d;state.statuses=s2.s;render();});
 }
 init();
 </script>
