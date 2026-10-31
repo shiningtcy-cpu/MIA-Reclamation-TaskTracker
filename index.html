@@ -44,27 +44,33 @@
   /* discipline filter chips (style references dashboard work-ledger chips) */
   .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 20px;padding:11px 14px;background:var(--soft);border:1px solid var(--line);border-radius:12px}
   .filters .fl-label{font-size:13px;font-weight:700;color:var(--muted);margin-right:6px}
-  .chip{display:inline-flex;flex-direction:column;line-height:1.15;padding:5px 13px;border-radius:20px;border:1.5px solid var(--line);background:#fff;color:var(--primary-d);font-weight:700;font-size:13px;cursor:pointer;transition:all .15s;user-select:none}
-  .chip .en-sub{font-size:10px;font-weight:500;opacity:.85}
+  .chip{display:inline-flex;flex-direction:column;line-height:1.15;padding:5px 13px;border-radius:20px;border:1.5px solid var(--line);background:#fff;color:var(--primary-d);font-weight:700;font-size:12.5px;cursor:pointer;transition:all .15s;user-select:none}
+  .chip .en-sub{font-size:12.5px;font-weight:500;opacity:.9}
   .chip:hover{box-shadow:0 1px 5px rgba(20,40,70,.18)}
   /* discipline tag pill inside table — both 中/EN inside the colored box */
   .disc-tag{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 11px;border-radius:7px;color:#fff;font-weight:700;font-size:12.5px;line-height:1.25;white-space:nowrap}
-  .disc-tag .dz{font-weight:700}
-  .disc-tag .de{font-size:10px;font-weight:500;opacity:.92;margin-top:1px}
+  .disc-tag .dz{font-weight:700;font-size:12.5px}
+  .disc-tag .de{font-size:12.5px;font-weight:500;opacity:.95;margin-top:1px}
   .chart-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
   .chart-card{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:14px}
   .chart-card h3{margin:0 0 10px;font-size:14px;font-weight:700;display:flex;align-items:baseline;gap:8px}
   .chart-card h3 .en{font-size:12px;font-weight:400}
   .donut-wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center}
   .donut-svg{display:block}
-  .donut-svg .seg{transition:transform .18s ease, filter .18s ease;cursor:pointer}
-  .legend{font-size:13px;min-width:140px}
+  .donut-svg .seg{cursor:pointer}
+  /* visible layer can scale on hover; hit layer stays original size to avoid flicker */
+  .donut-svg .seg-vis{transition:transform .18s ease, filter .18s ease;}
+  .legend{font-size:13px;min-width:150px}
   .lg-item{display:flex;align-items:center;gap:8px;margin:5px 0;padding:5px 9px;border-radius:8px;cursor:pointer;transition:background .15s}
   .lg-item:hover,.lg-item.active{background:#e9f2fb;font-weight:700}
   .legend .dot{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none}
+  .legend .lg-zh{font-weight:600}
+  .legend .lg-en{opacity:.7;font-size:12px;margin-right:4px}
   .legend b{margin-left:auto;padding-left:12px;font-variant-numeric:tabular-nums}
   .dn-center-val{font-size:26px;font-weight:800;fill:var(--primary-d)}
-  .dn-center-cap{font-size:10px;fill:var(--muted)}
+  .dn-center-cap{font-size:11px;fill:var(--muted)}
+  .dn-center-lz{font-size:13px;font-weight:700;fill:var(--ink);display:none}
+  .dn-center-le{font-size:10px;fill:var(--muted);display:none}
   section.cat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:22px;box-shadow:0 1px 4px rgba(20,40,70,.05)}
   .cat-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
   .cat-badge{width:14px;height:14px;border-radius:4px;display:inline-block}
@@ -88,9 +94,9 @@
   td.date{white-space:nowrap;font-variant-numeric:tabular-nums}
   table th.col-title, table td.col-title{min-width:240px;width:32%}
   .status-cell{font-weight:700;white-space:nowrap;text-align:center;padding:0}
-  .status-badge{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 10px;border-radius:7px;font-size:13px;font-weight:700;line-height:1.25;min-width:78px}
-  .status-badge .zh{font-weight:700}
-  .status-badge .en{font-size:10px;font-weight:500;opacity:.92;margin-top:1px}
+  .status-badge{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 10px;border-radius:7px;font-size:12.5px;font-weight:700;line-height:1.25;min-width:90px}
+  .status-badge .zh{font-weight:700;font-size:12.5px}
+  .status-badge .en{font-size:12.5px;font-weight:500;opacity:.95;margin-top:1px}
   .st-ok{background:#C6EFCE;color:#006100}
   .st-lag{background:#FFEB9C;color:#9C6500}
   .st-sev{background:#FFC7CE;color:#9C0006}
@@ -136,6 +142,13 @@
           <div class="legend" id="legendStatus"></div>
         </div>
       </div>
+      <div class="chart-card" id="cardDisc">
+        <h3>按範疇統計<span class="en">By Discipline</span></h3>
+        <div class="donut-wrap">
+          <div id="donutDisc"></div>
+          <div class="legend" id="legendDisc"></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -147,8 +160,9 @@
 const DATA = {"source": "待辦任務清單20261030_改進版.xlsx", "updated": "2026-10-30", "categories": [{"key": "EDMS", "zh": "EDMS 文件審批", "en": "EDMS Document Review", "count": 20, "items": [{"row": 2, "ref_no": "CHEC-MIA-DWG-00005-C", "title_zh": "陸域地基圖紙報審", "title_en": "Land foundation drawings submitted for review", "sender": "", "start": "2026-09-22", "deadline": "2026-09-29", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "嚴重滯後"}, {"row": 3, "ref_no": "CHEC-MIA-DWG-00010-B", "title_zh": "混凝土攪拌站基礎及安裝設計圖紙報審", "title_en": "Concrete mixing station foundation and installation design drawings submitted for review", "sender": "", "start": "2026-10-09", "deadline": "2026-10-16", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後"}, {"row": 4, "ref_no": "CHEC-MIA-DWG-00017-A", "title_zh": "橋樑優化工程設計文件報審", "title_en": "Bridge optimization project design documents submitted for review", "sender": "", "start": "2026-09-23", "deadline": "2026-09-30", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後"}, {"row": 5, "ref_no": "CHEC-MIA-MAT-00067-B", "title_zh": "製漿系統上部結構空壓機", "title_en": "Pulping system superstructure air compressor", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 6, "ref_no": "CHEC-MIA-MAT-00079-B", "title_zh": "集中製漿系統配電箱櫃資料上報", "title_en": "Data reporting of distribution cabinets of centralized pulping system", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 7, "ref_no": "CHEC-MIA-MAT-00093-C", "title_zh": "監控系統（海康威視）", "title_en": "Monitoring system (Hikvision)", "sender": "", "start": "2026-09-30", "deadline": "2026-10-07", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "嚴重滯後"}, {"row": 8, "ref_no": "CHEC-MIA-MAT-00097-A", "title_zh": "惰性物料（澳門）", "title_en": "Inert materials (Macau)", "sender": "", "start": "2026-10-05", "deadline": "2026-10-12", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後"}, {"row": 9, "ref_no": "CHEC-MIA-MST-00028-E", "title_zh": "PC-01階段陸域吹填施工方案", "title_en": "PC-01 Phase Land Dredging Construction Plan", "sender": "", "start": "2026-10-23", "deadline": "2026-10-30", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 10, "ref_no": "CHEC-MIA-MST-00049-B", "title_zh": "D區水泥攪拌樁施工方案", "title_en": "Construction plan for cement mixing piles in Area D", "sender": "", "start": "2026-10-27", "deadline": "2026-11-03", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 11, "ref_no": "CHEC-MIA-MST-00055-B", "title_zh": "陸域深層塑料排水板施工方案", "title_en": "Construction plan for deep plastic drainage board in land area", "sender": "", "start": "2026-10-27", "deadline": "2026-11-03", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 12, "ref_no": "CHEC-MIA-MST-00059-A", "title_zh": "MIA臨時電項目施工方案", "title_en": "MIA Temporary Power Project Construction Plan", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 13, "ref_no": "CHEC-MIA-MST-00060-B", "title_zh": "皮帶機電櫃現場驗收測試方案(SAT)", "title_en": "On-site acceptance test plan (SAT) for belt conveyor electrical cabinet", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 14, "ref_no": "CHEC-MIA-MST-00064-B", "title_zh": "混凝土攪拌站基礎施工方案", "title_en": "Foundation construction plan for concrete mixing station", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}, {"row": 15, "ref_no": "CHEC-MIA-RFI-00014-A", "title_zh": "關於道面工程、給排水、導助航等設計圖紙疑問及建議", "title_en": "Questions and suggestions on design drawings for pavement engineering, water supply and drainage, navigation assistance, etc.", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "機坪/Apron", "remarks": "", "status": "進行中"}, {"row": 16, "ref_no": "CHEC-MIA-RPT-00023-A", "title_zh": "上報澳門國際機場擴建工程-填海及機坪建造工程施工監測月報（第十二期8月1日-8月31日）", "title_en": "Report to Macau International Airport Expansion Project-Monthly Construction Monitoring Report for Reclamation and Airport Construction Project (Issue 12, August 1-August 31)", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 17, "ref_no": "CHEC-MIA-RPT-00024-A", "title_zh": "上報既有南北聯絡橋結構健康監測系統評估報告（第十二期8月1日-8月31日）", "title_en": "Report on the evaluation report on the structural health monitoring system of the existing north-south connection bridge (Issue 12, August 1-August 31)", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 18, "ref_no": "CHEC-MIA-TST-00236-A", "title_zh": "中壓臨電工程-備用7#和8#箱式變電站FAT報告", "title_en": "Medium voltage temporary power project-Backup 7#and 8#box-type substation FAT report", "sender": "", "start": "2026-10-12", "deadline": "2026-10-19", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "滯後"}, {"row": 19, "ref_no": "CHEC-MIA-TST-00242-A", "title_zh": "中壓臨電系統-#5箱式變電站現場驗收測試 SAT Report", "title_en": "Medium voltage temporary power system-#5 box-type substation on-site acceptance test SAT Report", "sender": "", "start": "2026-10-13", "deadline": "2026-10-20", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "滯後"}, {"row": 20, "ref_no": "CHEC-MIA-TST-00243-A", "title_zh": "中壓臨電系統-#4箱式變電站現場驗收測試 SAT Report", "title_en": "Medium Voltage Temporary Power System-On-site Acceptance Test for #4 Box-type Substation SAT Report", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 21, "ref_no": "CHEC-MIA-TST-00251-A", "title_zh": "上報D區施工監測初值報告", "title_en": "Submit initial construction monitoring report in Area D", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}]}, {"key": "Email", "zh": "電郵跟進", "en": "Email Follow-up", "count": 2, "items": [{"row": 2, "ref_no": "", "title_zh": "橋梁變更估價會議情況", "title_en": "Meeting on Bridge Change Valuation", "sender": "PM - WANG Kun", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}, {"row": 3, "ref_no": "", "title_zh": "DSPA對MIA擴建工程最終報告（停機坪環境影響評估）的意見", "title_en": "Follow-up Actions Required: DSPA's comments on Final Report of MIA Expansion Project - EIA for the Apron", "sender": "ERG - Arnold NG", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "機坪/Apron", "remarks": "", "status": "進行中"}]}, {"key": "Letter", "zh": "信函往來", "en": "Letters / Correspondence", "count": 3, "items": [{"row": 2, "ref_no": "CAM-PID-ERG-0137/2026", "title_zh": "對臨時變電站位置偏差和場地管理的擔憂", "title_en": "Concern Regarding Location Deviation of Temporary Substation and Site Management", "sender": "ERG", "start": "2026-09-29", "deadline": "2026-10-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後"}, {"row": 3, "ref_no": "CHEC-MIA-ER-00357", "title_zh": "請儘快明確“消防船塢與配套登岸點”設計的具體要求", "title_en": "Clarify the specific requirements for the design of \"fireboat dock and supporting landing point\".", "sender": "Contractor", "start": "2026-10-27", "deadline": "2026-11-03", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}, {"row": 4, "ref_no": "CAM-PID-ERG-0149/2026", "title_zh": "回復關於“澳門國際機場擴建工程臨時占用新城填海區E2區部分土地申請事宜”的復函", "title_en": "Reply to the application regarding the temporary occupation of part of the land in Zone E2 of the new urban reclamation area for the MIA expansion project", "sender": "ERG", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}]}]};
 const COLORS = {EDMS:'#2f6fb0', Email:'#e8833a', Letter:'#7a5ba6'};
 const ST_COLOR = {'進行中':'#2a9d5c','滯後':'#e8a33a','嚴重滯後':'#d9534f','未設定':'#b7c4d1'};
-const ST_EN = {'進行中':'In Progress','滯後':'Delayed','嚴重滯後':'Critically Delayed','未設定':'Not Set'};
+const ST_EN = {'進行中':'On Track','滯後':'Delayed','嚴重滯後':'Critically Delayed','未設定':'Not Set'};
 function stLabel(v){ if(!v) return '—'; return v+' / '+(ST_EN[v]||''); }
+function discLabel(v){ if(!v) return '未分類 / Unassigned'; const p=v.split('/'); return (p[0]||'')+' / '+(p[1]||(DISC_EN[v]||'')); }
 const DISC_COLOR={'填海/Reclamation':'#2A6FB0','機坪/Apron':'#0E8C7F','土木/Civil':'#B98A2E','建築/Arch':'#6D4FBF','機電/MEP':'#C0721F','一般事項/General':'#5B7C99'};
 const DISC_EN={'填海/Reclamation':'Reclamation','機坪/Apron':'Apron','土木/Civil':'Civil','建築/Arch':'Architecture','機電/MEP':'MEP','一般事項/General':'General'};
 const CAT_KEYS = DATA.categories.map(c=>c.key);
@@ -208,54 +222,69 @@ function ringPath(cx,cy,R,r){
 }
 function buildDonut(segs){
   const total=segs.reduce((a,s)=>a+s.value,0);
-  const cx=70,cy=70,R=56,r=34,start=-Math.PI/2;
-  let paths='';
+  const cx=80,cy=80,R=64,r=40,start=-Math.PI/2;
+  const seg=(zh,en,val,color,d,fill)=>
+    `<g class="seg" data-zh="${zh}" data-en="${en}" data-value="${val}" data-color="${color}">`+
+      `<path class="seg-hit" d="${d}" fill="transparent" pointer-events="all"/>`+
+      `<path class="seg-vis" d="${d}" fill="${fill}" ${fill==='transparent'?'':'fill-rule="evenodd"'} pointer-events="none"/>`+
+    `</g>`;
+  let groups='';
   if(total===0){
-    paths=`<path class="seg" d="${ringPath(cx,cy,R,r)}" fill="#e2e8f0" fill-rule="evenodd" data-label="無" data-value="0" data-color="#e2e8f0"/>`;
+    groups=seg('無','None','0','#e2e8f0',ringPath(cx,cy,R,r),'#e2e8f0');
   }else if(segs.length===1 || segs.filter(s=>s.value>0).length===1){
     const s=segs.find(x=>x.value>0)||segs[0];
-    paths=`<path class="seg" d="${ringPath(cx,cy,R,r)}" fill="${s.color}" fill-rule="evenodd" data-label="${esc(s.label)}" data-value="${s.value}" data-color="${s.color}"/>`;
+    groups=seg(esc(s.zh),esc(s.en),String(s.value),s.color,ringPath(cx,cy,R,r),s.color);
   }else{
     let a=start;
     segs.forEach(s=>{
       const frac=s.value/total, a1=a+frac*2*Math.PI;
-      paths+=`<path class="seg" d="${arcPath(cx,cy,R,r,a,a1)}" fill="${s.color}" data-label="${esc(s.label)}" data-value="${s.value}" data-color="${s.color}"/>`;
+      groups+=seg(esc(s.zh),esc(s.en),String(s.value),s.color,arcPath(cx,cy,R,r,a,a1),s.color);
       a=a1;
     });
   }
-  return `<svg viewBox="0 0 140 140" width="168" height="168" class="donut-svg">
-    <g class="segs">${paths}</g>
-    <text class="dn-center-val" x="70" y="68" text-anchor="middle">${total>0?total:0}</text>
-    <text class="dn-center-cap" x="70" y="86" text-anchor="middle" fill="#6b7c8f">總計 Total</text>
+  return `<svg viewBox="0 0 160 160" width="190" height="190" class="donut-svg">
+    <g class="segs">${groups}</g>
+    <text class="dn-center-val"  x="80" y="74" text-anchor="middle">${total>0?total:0}</text>
+    <text class="dn-center-cap" x="80" y="94" text-anchor="middle" fill="#6b7c8f">總計 Total</text>
+    <text class="dn-center-lz"   x="80" y="82" text-anchor="middle"></text>
+    <text class="dn-center-le"   x="80" y="99" text-anchor="middle"></text>
   </svg>`;
 }
 function legendHTML(segs,total){
-  return segs.map((s,i)=>`<div class="lg-item" data-idx="${i}"><span class="dot" style="background:${s.color}"></span>${esc(s.label)}<b>${s.value} (${total?Math.round(s.value/total*100):0}%)</b></div>`).join('');
+  return segs.map((s,i)=>`<div class="lg-item" data-idx="${i}"><span class="dot" style="background:${s.color}"></span><span class="lg-zh">${esc(s.zh)}</span><span class="lg-en">${esc(s.en)}</span><b>${s.value} (${total?Math.round(s.value/total*100):0}%)</b></div>`).join('');
 }
 function bindDonut(box){
   const segs=[...box.querySelectorAll('.seg')];
   const val=box.querySelector('.dn-center-val');
   const cap=box.querySelector('.dn-center-cap');
+  const lz=box.querySelector('.dn-center-lz');
+  const le=box.querySelector('.dn-center-le');
   if(!segs.length||!val) return;
-  const dVal=val.textContent, dCap=cap.textContent, dColor=cap.getAttribute('fill');
+  const dVal=val.textContent, dY=val.getAttribute('y');
   function focus(i){
-    segs.forEach((s,j)=>{
+    segs.forEach((g,j)=>{
+      const vis=g.querySelector('.seg-vis');
       if(j===i){
-        s.setAttribute('transform','translate(70 70) scale(1.08) translate(-70 -70)');
-        s.parentNode.appendChild(s);
-        s.style.filter='drop-shadow(0 3px 5px rgba(0,0,0,.35))';
-      }else{ s.removeAttribute('transform'); s.style.filter=''; }
+        g.parentNode.appendChild(g);   // bring whole segment (incl. visible layer) to front
+        vis.setAttribute('transform','translate(80 80) scale(1.08) translate(-80 -80)');
+        vis.style.filter='drop-shadow(0 3px 5px rgba(0,0,0,.35))';
+      }else{ vis.removeAttribute('transform'); vis.style.filter=''; }
     });
-    const s=segs[i];
-    val.textContent=s.dataset.value; cap.textContent=s.dataset.label; cap.setAttribute('fill',s.dataset.color);
+    const s=segs[i].dataset;
+    val.textContent=s.value; val.setAttribute('y','60'); val.style.fontSize='20px';
+    lz.textContent=s.zh; lz.style.fill=s.color; lz.style.display='block';
+    le.textContent=s.en; le.style.display='block';
+    cap.style.display='none';
     box.querySelectorAll('.lg-item').forEach((li,j)=>li.classList.toggle('active',j===i));
   }
   function reset(){
-    segs.forEach(s=>{s.removeAttribute('transform');s.style.filter='';});
-    val.textContent=dVal; cap.textContent=dCap; cap.setAttribute('fill',dColor);
+    segs.forEach(g=>{const vis=g.querySelector('.seg-vis');vis.removeAttribute('transform');vis.style.filter='';});
+    val.textContent=dVal; val.setAttribute('y',dY); val.style.fontSize='';
+    lz.style.display='none'; lz.style.fill=''; le.style.display='none'; le.style.fill='';
+    cap.style.display='';
     box.querySelectorAll('.lg-item').forEach(li=>li.classList.remove('active'));
   }
-  segs.forEach((s,i)=>{s.addEventListener('mouseenter',()=>focus(i));s.addEventListener('mouseleave',reset);});
+  segs.forEach((g,i)=>{g.addEventListener('mouseenter',()=>focus(i));g.addEventListener('mouseleave',reset);});
   box.querySelectorAll('.lg-item').forEach((li,i)=>{li.addEventListener('mouseenter',()=>focus(i));li.addEventListener('mouseleave',reset);});
 }
 
@@ -276,20 +305,30 @@ function renderDashboard(groups){
     `<div class="kpi ${k.cls}"><div class="v">${k.v}</div><div class="l">${k.l}<span class="en">${k.en}</span></div></div>`).join('');
 
   // Category donut
-  const catSegs=CAT_KEYS.map(k=>{const g=groups.find(x=>x.key===k);return {label:k,value:g?g.items.length:0,color:COLORS[k]};});
+  const catSegs=CAT_KEYS.map(k=>{const g=groups.find(x=>x.key===k);const meta=DATA.categories.find(c=>c.key===k);return {zh:k,en:meta?meta.en:'',value:g?g.items.length:0,color:COLORS[k]};});
   const catTotal=catSegs.reduce((a,s)=>a+s.value,0);
   document.getElementById('donutCat').innerHTML=buildDonut(catSegs);
   document.getElementById('legendCat').innerHTML=legendHTML(catSegs,catTotal);
 
   // Status donut (exclude 未設定 / Not Set)
   const stOrder=['進行中','滯後','嚴重滯後'];
-  const stSegs=stOrder.map(s=>({label:stLabel(s),value:cnt(s),color:ST_COLOR[s]}));
+  const stSegs=stOrder.map(s=>({zh:s,en:ST_EN[s],value:cnt(s),color:ST_COLOR[s]}));
   const stTotal=cOk+cLag+cSev;
   document.getElementById('donutStatus').innerHTML=buildDonut(stSegs);
   document.getElementById('legendStatus').innerHTML=legendHTML(stSegs,stTotal);
 
+  // Discipline donut
+  const discMap={};
+  allItems.forEach(it=>{const d=it.discipline||''; discMap[d]=(discMap[d]||0)+1;});
+  const discSegs=Object.keys(DISC_COLOR).map(d=>{const zh=d.split('/')[0],en=d.split('/')[1]||DISC_EN[d];return {zh,en,value:discMap[d]||0,color:DISC_COLOR[d]};}).filter(s=>s.value>0);
+  if(discMap['']){ discSegs.push({zh:'未分類',en:'Unassigned',value:discMap[''],color:'#b7c4d1'}); }
+  const discTotal=discSegs.reduce((a,s)=>a+s.value,0);
+  document.getElementById('donutDisc').innerHTML=buildDonut(discSegs);
+  document.getElementById('legendDisc').innerHTML=legendHTML(discSegs,discTotal);
+
   bindDonut(document.getElementById('cardCat'));
   bindDonut(document.getElementById('cardStatus'));
+  bindDonut(document.getElementById('cardDisc'));
 }
 
 /* ---------- Sections ---------- */
