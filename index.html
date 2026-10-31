@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>待辦任務清單 / To-Do Task List</title>
+<style>
+  :root{
+    --bg:#eef2f6; --card:#ffffff; --ink:#1a2b3c; --muted:#6b7c8f;
+    --primary:#145da0; --primary-d:#0c3a66; --accent:#e8833a;
+    --ok:#2a9d5c; --warn:#d9534f; --line:#dde5ec; --soft:#f3f7fb;
+    --edms:#2f6fb0; --email:#e8833a; --letter:#7a5ba6;
+    --st-ok:#2a9d5c; --st-lag:#e8a33a; --st-sev:#d9534f; --st-na:#b7c4d1;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI","Microsoft JhengHei","Microsoft YaHei",-apple-system,Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5;}
+  .en{color:var(--muted);font-weight:400;}
+  .topbar{background:linear-gradient(120deg,var(--primary-d),var(--primary));color:#fff;padding:18px 22px;
+          display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 10px rgba(0,0,0,.12);}
+  .topbar h1{margin:0;font-size:22px;font-weight:700;letter-spacing:.5px}
+  .topbar h1 .en{color:#cfe3f5;font-weight:500;font-size:18px;margin-left:8px}
+  .meta{margin-top:4px;font-size:13px;color:#d6e6f5}
+  .meta b{color:#fff}
+  .actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  #search{padding:8px 12px;border-radius:8px;border:1px solid #b9d0e6;min-width:200px;font-size:14px;outline:none}
+  #search:focus{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.35)}
+  .nav{display:flex;gap:8px;flex-wrap:wrap;padding:12px 22px;background:var(--soft);border-bottom:1px solid var(--line);position:sticky;top:78px;z-index:40}
+  .nav a{text-decoration:none;color:var(--primary-d);background:#fff;border:1px solid var(--line);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600}
+  .nav a:hover{border-color:var(--primary)}
+  .nav a .en{font-weight:400}
+  .wrap{max-width:1200px;margin:0 auto;padding:20px}
+  .sec-title{font-size:18px;font-weight:700;margin:6px 0 14px;display:flex;align-items:baseline;gap:10px}
+  .sec-title .en{font-size:15px}
+  .dashboard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:26px;box-shadow:0 1px 4px rgba(20,40,70,.05)}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+  .kpi{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden}
+  .kpi .v{font-size:30px;font-weight:800;line-height:1;color:var(--primary-d)}
+  .kpi .l{margin-top:8px;font-size:13px;color:var(--muted);font-weight:600}
+  .kpi .l .en{display:block;font-size:11px;font-weight:400}
+  .kpi.warn .v{color:var(--warn)} .kpi.ok .v{color:var(--ok)} .kpi.accent .v{color:var(--accent)}
+  .kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--primary)}
+  .kpi.ok::after{background:var(--ok)} .kpi.warn::after{background:var(--warn)} .kpi.accent::after{background:var(--accent)}
+  /* discipline filter chips (style references dashboard work-ledger chips) */
+  .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 20px;padding:11px 14px;background:var(--soft);border:1px solid var(--line);border-radius:12px}
+  .filters .fl-label{font-size:13px;font-weight:700;color:var(--muted);margin-right:6px}
+  .chip{display:inline-flex;flex-direction:column;line-height:1.15;padding:5px 13px;border-radius:20px;border:1.5px solid var(--line);background:#fff;color:var(--primary-d);font-weight:700;font-size:13px;cursor:pointer;transition:all .15s;user-select:none}
+  .chip .en-sub{font-size:10px;font-weight:500;opacity:.85}
+  .chip:hover{box-shadow:0 1px 5px rgba(20,40,70,.18)}
+  /* discipline tag pill inside table — both 中/EN inside the colored box */
+  .disc-tag{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 11px;border-radius:7px;color:#fff;font-weight:700;font-size:12.5px;line-height:1.25;white-space:nowrap}
+  .disc-tag .dz{font-weight:700}
+  .disc-tag .de{font-size:10px;font-weight:500;opacity:.92;margin-top:1px}
+  .chart-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+  .chart-card{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .chart-card h3{margin:0 0 10px;font-size:14px;font-weight:700;display:flex;align-items:baseline;gap:8px}
+  .chart-card h3 .en{font-size:12px;font-weight:400}
+  .donut-wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center}
+  .donut-svg{display:block}
+  .donut-svg .seg{transition:transform .18s ease, filter .18s ease;cursor:pointer}
+  .legend{font-size:13px;min-width:140px}
+  .lg-item{display:flex;align-items:center;gap:8px;margin:5px 0;padding:5px 9px;border-radius:8px;cursor:pointer;transition:background .15s}
+  .lg-item:hover,.lg-item.active{background:#e9f2fb;font-weight:700}
+  .legend .dot{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none}
+  .legend b{margin-left:auto;padding-left:12px;font-variant-numeric:tabular-nums}
+  .dn-center-val{font-size:26px;font-weight:800;fill:var(--primary-d)}
+  .dn-center-cap{font-size:10px;fill:var(--muted)}
+  section.cat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:22px;box-shadow:0 1px 4px rgba(20,40,70,.05)}
+  .cat-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+  .cat-badge{width:14px;height:14px;border-radius:4px;display:inline-block}
+  .cat-head h2{margin:0;font-size:18px;font-weight:800}
+  .cat-head h2 .en{font-size:14px;font-weight:500}
+  .cat-count{margin-left:auto;background:var(--soft);border:1px solid var(--line);border-radius:20px;padding:4px 14px;font-size:13px;font-weight:700;color:var(--primary-d)}
+  .tbl-scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;min-width:720px}
+  thead th{background:var(--primary-d);color:#fff;text-align:left;padding:11px 12px;font-size:13px;vertical-align:top;cursor:pointer;user-select:none;position:relative;white-space:nowrap}
+  thead th .th-zh{font-weight:700;display:block}
+  thead th .th-en{font-weight:600;font-size:12.5px;color:#e6f0f8;display:block}
+  thead th:hover{background:#0a2f54}
+  thead th .arr{position:absolute;right:6px;top:10px;font-size:10px;opacity:.7}
+  tbody td{padding:10px 12px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:top}
+  tbody tr:nth-child(even){background:#fafcfe}
+  tbody tr:hover{background:#eef5fc}
+  td .zh{font-weight:600;font-size:14px}
+  td .en{font-size:14px;color:#46586a;margin-top:2px}
+  td.ref{font-family:"Consolas",monospace;font-size:12.5px;color:var(--primary-d);white-space:nowrap}
+  td .miss{color:#b7c4d1;font-style:italic}
+  td.date{white-space:nowrap;font-variant-numeric:tabular-nums}
+  table th.col-title, table td.col-title{min-width:240px;width:32%}
+  .status-cell{font-weight:700;white-space:nowrap;text-align:center;padding:0}
+  .status-badge{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 10px;border-radius:7px;font-size:13px;font-weight:700;line-height:1.25;min-width:78px}
+  .status-badge .zh{font-weight:700}
+  .status-badge .en{font-size:10px;font-weight:500;opacity:.92;margin-top:1px}
+  .st-ok{background:#C6EFCE;color:#006100}
+  .st-lag{background:#FFEB9C;color:#9C6500}
+  .st-sev{background:#FFC7CE;color:#9C0006}
+  .st-na{background:#eef1f4;color:#8896a3}
+  .empty{color:var(--muted)}
+  .no-res{text-align:center;color:var(--muted);padding:24px}
+  footer{max-width:1200px;margin:0 auto;padding:10px 20px 40px;color:var(--muted);font-size:12px;text-align:center}
+  @media(max-width:640px){
+    .topbar h1{font-size:18px}.topbar h1 .en{font-size:14px}
+    .kpi .v{font-size:24px}.nav{top:70px}
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="title-block">
+    <h1>待辦任務清單<span class="en">To-Do Task List</span></h1>
+    <div class="meta">更新日期 Last Updated：<b id="updated"></b></div>
+  </div>
+  <div class="actions">
+    <input id="search" placeholder="搜尋 Search…" autocomplete="off">
+  </div>
+</header>
+
+<nav class="nav" id="nav"></nav>
+
+<div class="wrap">
+  <section class="dashboard" id="dashboard">
+    <div class="sec-title">整體概覽<span class="en">Overall Overview</span></div>
+    <div class="kpi-grid" id="kpiGrid"></div>
+    <div class="chart-row">
+      <div class="chart-card" id="cardCat">
+        <h3>分類佔比<span class="en">By Category</span></h3>
+        <div class="donut-wrap">
+          <div id="donutCat"></div>
+          <div class="legend" id="legendCat"></div>
+        </div>
+      </div>
+      <div class="chart-card" id="cardStatus">
+        <h3>處理狀態<span class="en">By Status</span></h3>
+        <div class="donut-wrap">
+          <div id="donutStatus"></div>
+          <div class="legend" id="legendStatus"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="filters" id="discFilters"></div>
+  <main id="sections"></main>
+</div>
+
+<script>
+const DATA = {"source": "待辦任務清單20261030_改進版.xlsx", "updated": "2026-10-30", "categories": [{"key": "EDMS", "zh": "EDMS 文件審批", "en": "EDMS Document Review", "count": 20, "items": [{"row": 2, "ref_no": "CHEC-MIA-DWG-00005-C", "title_zh": "陸域地基圖紙報審", "title_en": "Land foundation drawings submitted for review", "sender": "", "start": "2026-09-22", "deadline": "2026-09-29", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "嚴重滯後"}, {"row": 3, "ref_no": "CHEC-MIA-DWG-00010-B", "title_zh": "混凝土攪拌站基礎及安裝設計圖紙報審", "title_en": "Concrete mixing station foundation and installation design drawings submitted for review", "sender": "", "start": "2026-10-09", "deadline": "2026-10-16", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後"}, {"row": 4, "ref_no": "CHEC-MIA-DWG-00017-A", "title_zh": "橋樑優化工程設計文件報審", "title_en": "Bridge optimization project design documents submitted for review", "sender": "", "start": "2026-09-23", "deadline": "2026-09-30", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後"}, {"row": 5, "ref_no": "CHEC-MIA-MAT-00067-B", "title_zh": "製漿系統上部結構空壓機", "title_en": "Pulping system superstructure air compressor", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 6, "ref_no": "CHEC-MIA-MAT-00079-B", "title_zh": "集中製漿系統配電箱櫃資料上報", "title_en": "Data reporting of distribution cabinets of centralized pulping system", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 7, "ref_no": "CHEC-MIA-MAT-00093-C", "title_zh": "監控系統（海康威視）", "title_en": "Monitoring system (Hikvision)", "sender": "", "start": "2026-09-30", "deadline": "2026-10-07", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "嚴重滯後"}, {"row": 8, "ref_no": "CHEC-MIA-MAT-00097-A", "title_zh": "惰性物料（澳門）", "title_en": "Inert materials (Macau)", "sender": "", "start": "2026-10-05", "deadline": "2026-10-12", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後"}, {"row": 9, "ref_no": "CHEC-MIA-MST-00028-E", "title_zh": "PC-01階段陸域吹填施工方案", "title_en": "PC-01 Phase Land Dredging Construction Plan", "sender": "", "start": "2026-10-23", "deadline": "2026-10-30", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 10, "ref_no": "CHEC-MIA-MST-00049-B", "title_zh": "D區水泥攪拌樁施工方案", "title_en": "Construction plan for cement mixing piles in Area D", "sender": "", "start": "2026-10-27", "deadline": "2026-11-03", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 11, "ref_no": "CHEC-MIA-MST-00055-B", "title_zh": "陸域深層塑料排水板施工方案", "title_en": "Construction plan for deep plastic drainage board in land area", "sender": "", "start": "2026-10-27", "deadline": "2026-11-03", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 12, "ref_no": "CHEC-MIA-MST-00059-A", "title_zh": "MIA臨時電項目施工方案", "title_en": "MIA Temporary Power Project Construction Plan", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 13, "ref_no": "CHEC-MIA-MST-00060-B", "title_zh": "皮帶機電櫃現場驗收測試方案(SAT)", "title_en": "On-site acceptance test plan (SAT) for belt conveyor electrical cabinet", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 14, "ref_no": "CHEC-MIA-MST-00064-B", "title_zh": "混凝土攪拌站基礎施工方案", "title_en": "Foundation construction plan for concrete mixing station", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}, {"row": 15, "ref_no": "CHEC-MIA-RFI-00014-A", "title_zh": "關於道面工程、給排水、導助航等設計圖紙疑問及建議", "title_en": "Questions and suggestions on design drawings for pavement engineering, water supply and drainage, navigation assistance, etc.", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "機坪/Apron", "remarks": "", "status": "進行中"}, {"row": 16, "ref_no": "CHEC-MIA-RPT-00023-A", "title_zh": "上報澳門國際機場擴建工程-填海及機坪建造工程施工監測月報（第十二期8月1日-8月31日）", "title_en": "Report to Macau International Airport Expansion Project-Monthly Construction Monitoring Report for Reclamation and Airport Construction Project (Issue 12, August 1-August 31)", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 17, "ref_no": "CHEC-MIA-RPT-00024-A", "title_zh": "上報既有南北聯絡橋結構健康監測系統評估報告（第十二期8月1日-8月31日）", "title_en": "Report on the evaluation report on the structural health monitoring system of the existing north-south connection bridge (Issue 12, August 1-August 31)", "sender": "", "start": "2026-10-29", "deadline": "2026-11-05", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}, {"row": 18, "ref_no": "CHEC-MIA-TST-00236-A", "title_zh": "中壓臨電工程-備用7#和8#箱式變電站FAT報告", "title_en": "Medium voltage temporary power project-Backup 7#and 8#box-type substation FAT report", "sender": "", "start": "2026-10-12", "deadline": "2026-10-19", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "滯後"}, {"row": 19, "ref_no": "CHEC-MIA-TST-00242-A", "title_zh": "中壓臨電系統-#5箱式變電站現場驗收測試 SAT Report", "title_en": "Medium voltage temporary power system-#5 box-type substation on-site acceptance test SAT Report", "sender": "", "start": "2026-10-13", "deadline": "2026-10-20", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "滯後"}, {"row": 20, "ref_no": "CHEC-MIA-TST-00243-A", "title_zh": "中壓臨電系統-#4箱式變電站現場驗收測試 SAT Report", "title_en": "Medium Voltage Temporary Power System-On-site Acceptance Test for #4 Box-type Substation SAT Report", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "機電/MEP", "remarks": "", "status": "進行中"}, {"row": 21, "ref_no": "CHEC-MIA-TST-00251-A", "title_zh": "上報D區施工監測初值報告", "title_en": "Submit initial construction monitoring report in Area D", "sender": "", "start": "2026-10-26", "deadline": "2026-11-02", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中"}]}, {"key": "Email", "zh": "電郵跟進", "en": "Email Follow-up", "count": 2, "items": [{"row": 2, "ref_no": "", "title_zh": "橋梁變更估價會議情況", "title_en": "Meeting on Bridge Change Valuation", "sender": "PM - WANG Kun", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}, {"row": 3, "ref_no": "", "title_zh": "DSPA對MIA擴建工程最終報告（停機坪環境影響評估）的意見", "title_en": "Follow-up Actions Required: DSPA's comments on Final Report of MIA Expansion Project - EIA for the Apron", "sender": "ERG - Arnold NG", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "機坪/Apron", "remarks": "", "status": "進行中"}]}, {"key": "Letter", "zh": "信函往來", "en": "Letters / Correspondence", "count": 3, "items": [{"row": 2, "ref_no": "CAM-PID-ERG-0137/2026", "title_zh": "對臨時變電站位置偏差和場地管理的擔憂", "title_en": "Concern Regarding Location Deviation of Temporary Substation and Site Management", "sender": "ERG", "start": "2026-09-29", "deadline": "2026-10-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後"}, {"row": 3, "ref_no": "CHEC-MIA-ER-00357", "title_zh": "請儘快明確“消防船塢與配套登岸點”設計的具體要求", "title_en": "Clarify the specific requirements for the design of \"fireboat dock and supporting landing point\".", "sender": "Contractor", "start": "2026-10-27", "deadline": "2026-11-03", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}, {"row": 4, "ref_no": "CAM-PID-ERG-0149/2026", "title_zh": "回復關於“澳門國際機場擴建工程臨時占用新城填海區E2區部分土地申請事宜”的復函", "title_en": "Reply to the application regarding the temporary occupation of part of the land in Zone E2 of the new urban reclamation area for the MIA expansion project", "sender": "ERG", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}]}]};
+const COLORS = {EDMS:'#2f6fb0', Email:'#e8833a', Letter:'#7a5ba6'};
+const ST_COLOR = {'進行中':'#2a9d5c','滯後':'#e8a33a','嚴重滯後':'#d9534f','未設定':'#b7c4d1'};
+const ST_EN = {'進行中':'In Progress','滯後':'Delayed','嚴重滯後':'Critically Delayed','未設定':'Not Set'};
+function stLabel(v){ if(!v) return '—'; return v+' / '+(ST_EN[v]||''); }
+const DISC_COLOR={'填海/Reclamation':'#2A6FB0','機坪/Apron':'#0E8C7F','土木/Civil':'#B98A2E','建築/Arch':'#6D4FBF','機電/MEP':'#C0721F','一般事項/General':'#5B7C99'};
+const DISC_EN={'填海/Reclamation':'Reclamation','機坪/Apron':'Apron','土木/Civil':'Civil','建築/Arch':'Architecture','機電/MEP':'MEP','一般事項/General':'General'};
+const CAT_KEYS = DATA.categories.map(c=>c.key);
+const COLS = {
+  EDMS:[
+    {key:'ref_no', zh:'流程編號', en:'Ref. No.'},
+    {key:'discipline', zh:'範疇', en:'Discipline', type:'discipline'},
+    {key:'title',  zh:'工作標題', en:'Work Title', type:'title'},
+    {key:'start',  zh:'開始時間', en:'Start Time', type:'date'},
+    {key:'deadline',zh:'提交截止時間', en:'Submission Deadline', type:'date'},
+    {key:'status', zh:'狀態', en:'Status', type:'status'},
+    {key:'remarks', zh:'備註', en:'Remarks', type:'remarks'}
+  ],
+  Email:[
+    {key:'ref_no', zh:'流程編號', en:'Ref. No.'},
+    {key:'discipline', zh:'範疇', en:'Discipline', type:'discipline'},
+    {key:'title',  zh:'工作標題', en:'Work Title', type:'title'},
+    {key:'sender', zh:'發送方', en:'Sender'},
+    {key:'start',  zh:'開始時間', en:'Start Time', type:'date'},
+    {key:'deadline',zh:'提交截止時間', en:'Submission Deadline', type:'date'},
+    {key:'status', zh:'狀態', en:'Status', type:'status'},
+    {key:'remarks', zh:'備註', en:'Remarks', type:'remarks'}
+  ],
+  Letter:[
+    {key:'ref_no', zh:'流程編號', en:'Ref. No.'},
+    {key:'discipline', zh:'範疇', en:'Discipline', type:'discipline'},
+    {key:'title',  zh:'工作標題', en:'Work Title', type:'title'},
+    {key:'sender', zh:'發送方', en:'Sender'},
+    {key:'start',  zh:'開始時間', en:'Start Time', type:'date'},
+    {key:'deadline',zh:'提交截止時間', en:'Submission Deadline', type:'date'},
+    {key:'status', zh:'狀態', en:'Status', type:'status'},
+    {key:'remarks', zh:'備註', en:'Remarks', type:'remarks'}
+  ]
+};
+
+const state = {search:'', discipline:null, sort:{}};
+
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function titleText(it){return (it.title_zh||'')+' '+(it.title_en||'');}
+function sortVal(it,key){
+  if(key==='title')return titleText(it).toLowerCase();
+  if(key==='discipline')return (it.discipline||'').toLowerCase();
+  return String(it[key]||'').toLowerCase();
+}
+
+/* ---------- Donut geometry ---------- */
+function polar(cx,cy,r,a){return [cx+r*Math.cos(a), cy+r*Math.sin(a)];}
+function arcPath(cx,cy,R,r,a0,a1){
+  const large=(a1-a0)>Math.PI?1:0;
+  const [x0,y0]=polar(cx,cy,R,a0),[x1,y1]=polar(cx,cy,R,a1);
+  const [x2,y2]=polar(cx,cy,r,a1),[x3,y3]=polar(cx,cy,r,a0);
+  return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${R} ${R} 0 ${large} 1 ${x1.toFixed(2)} ${y1.toFixed(2)} L${x2.toFixed(2)} ${y2.toFixed(2)} A${r} ${r} 0 ${large} 0 ${x3.toFixed(2)} ${y3.toFixed(2)} Z`;
+}
+function ringPath(cx,cy,R,r){
+  return `M ${cx} ${cy-R} A ${R} ${R} 0 1 1 ${cx} ${cy+R} A ${R} ${R} 0 1 1 ${cx} ${cy-R} Z `+
+         `M ${cx} ${cy-r} A ${r} ${r} 0 1 0 ${cx} ${cy+r} A ${r} ${r} 0 1 0 ${cx} ${cy-r} Z`;
+}
+function buildDonut(segs){
+  const total=segs.reduce((a,s)=>a+s.value,0);
+  const cx=70,cy=70,R=56,r=34,start=-Math.PI/2;
+  let paths='';
+  if(total===0){
+    paths=`<path class="seg" d="${ringPath(cx,cy,R,r)}" fill="#e2e8f0" fill-rule="evenodd" data-label="無" data-value="0" data-color="#e2e8f0"/>`;
+  }else if(segs.length===1 || segs.filter(s=>s.value>0).length===1){
+    const s=segs.find(x=>x.value>0)||segs[0];
+    paths=`<path class="seg" d="${ringPath(cx,cy,R,r)}" fill="${s.color}" fill-rule="evenodd" data-label="${esc(s.label)}" data-value="${s.value}" data-color="${s.color}"/>`;
+  }else{
+    let a=start;
+    segs.forEach(s=>{
+      const frac=s.value/total, a1=a+frac*2*Math.PI;
+      paths+=`<path class="seg" d="${arcPath(cx,cy,R,r,a,a1)}" fill="${s.color}" data-label="${esc(s.label)}" data-value="${s.value}" data-color="${s.color}"/>`;
+      a=a1;
+    });
+  }
+  return `<svg viewBox="0 0 140 140" width="168" height="168" class="donut-svg">
+    <g class="segs">${paths}</g>
+    <text class="dn-center-val" x="70" y="68" text-anchor="middle">${total>0?total:0}</text>
+    <text class="dn-center-cap" x="70" y="86" text-anchor="middle" fill="#6b7c8f">總計 Total</text>
+  </svg>`;
+}
+function legendHTML(segs,total){
+  return segs.map((s,i)=>`<div class="lg-item" data-idx="${i}"><span class="dot" style="background:${s.color}"></span>${esc(s.label)}<b>${s.value} (${total?Math.round(s.value/total*100):0}%)</b></div>`).join('');
+}
+function bindDonut(box){
+  const segs=[...box.querySelectorAll('.seg')];
+  const val=box.querySelector('.dn-center-val');
+  const cap=box.querySelector('.dn-center-cap');
+  if(!segs.length||!val) return;
+  const dVal=val.textContent, dCap=cap.textContent, dColor=cap.getAttribute('fill');
+  function focus(i){
+    segs.forEach((s,j)=>{
+      if(j===i){
+        s.setAttribute('transform','translate(70 70) scale(1.08) translate(-70 -70)');
+        s.parentNode.appendChild(s);
+        s.style.filter='drop-shadow(0 3px 5px rgba(0,0,0,.35))';
+      }else{ s.removeAttribute('transform'); s.style.filter=''; }
+    });
+    const s=segs[i];
+    val.textContent=s.dataset.value; cap.textContent=s.dataset.label; cap.setAttribute('fill',s.dataset.color);
+    box.querySelectorAll('.lg-item').forEach((li,j)=>li.classList.toggle('active',j===i));
+  }
+  function reset(){
+    segs.forEach(s=>{s.removeAttribute('transform');s.style.filter='';});
+    val.textContent=dVal; cap.textContent=dCap; cap.setAttribute('fill',dColor);
+    box.querySelectorAll('.lg-item').forEach(li=>li.classList.remove('active'));
+  }
+  segs.forEach((s,i)=>{s.addEventListener('mouseenter',()=>focus(i));s.addEventListener('mouseleave',reset);});
+  box.querySelectorAll('.lg-item').forEach((li,i)=>{li.addEventListener('mouseenter',()=>focus(i));li.addEventListener('mouseleave',reset);});
+}
+
+/* ---------- Dashboard ---------- */
+function renderDashboard(groups){
+  const total=groups.reduce((a,g)=>a+g.items.length,0);
+  const allItems=groups.flatMap(g=>g.items);
+  const cnt=cls=>(allItems.filter(it=>it.status===cls).length);
+  const cOk=cnt('進行中'), cLag=cnt('滯後'), cSev=cnt('嚴重滯後');
+
+  const kpis=[
+    {v:total, l:'總待辦事項', en:'Total Tasks', cls:''},
+    {v:cOk,   l:'進行中',     en:'On Track',   cls:'ok'},
+    {v:cLag,  l:'滯後',       en:'Delayed',    cls:'accent'},
+    {v:cSev,  l:'嚴重滯後',   en:'Critically Delayed', cls:'warn'}
+  ];
+  document.getElementById('kpiGrid').innerHTML=kpis.map(k=>
+    `<div class="kpi ${k.cls}"><div class="v">${k.v}</div><div class="l">${k.l}<span class="en">${k.en}</span></div></div>`).join('');
+
+  // Category donut
+  const catSegs=CAT_KEYS.map(k=>{const g=groups.find(x=>x.key===k);return {label:k,value:g?g.items.length:0,color:COLORS[k]};});
+  const catTotal=catSegs.reduce((a,s)=>a+s.value,0);
+  document.getElementById('donutCat').innerHTML=buildDonut(catSegs);
+  document.getElementById('legendCat').innerHTML=legendHTML(catSegs,catTotal);
+
+  // Status donut (exclude 未設定 / Not Set)
+  const stOrder=['進行中','滯後','嚴重滯後'];
+  const stSegs=stOrder.map(s=>({label:stLabel(s),value:cnt(s),color:ST_COLOR[s]}));
+  const stTotal=cOk+cLag+cSev;
+  document.getElementById('donutStatus').innerHTML=buildDonut(stSegs);
+  document.getElementById('legendStatus').innerHTML=legendHTML(stSegs,stTotal);
+
+  bindDonut(document.getElementById('cardCat'));
+  bindDonut(document.getElementById('cardStatus'));
+}
+
+/* ---------- Sections ---------- */
+function renderSections(groups){
+  const host=document.getElementById('sections');
+  let html='';
+  groups.forEach(g=>{
+    if(!g.items.length){return;}
+    const meta=DATA.categories.find(c=>c.key===g.key);
+    let rows=g.items.map(it=>{
+      const cells=COLS[g.key].map(col=>cellFor(col,it)).join('');
+      return `<tr>${cells}</tr>`;
+    }).join('');
+    if(!rows) rows=`<tr><td colspan="${COLS[g.key].length}" class="no-res">無符合項目 No matching items</td></tr>`;
+    const heads=COLS[g.key].map(col=>{
+      const s=state.sort[g.key];
+      const arr=(s&&s.key===col.key)?(s.dir>0?'▲':'▼'):'';
+      const cls=col.key==='title'?' col-title':'';
+      return `<th class="${cls}" data-cat="${g.key}" data-key="${col.key}"><span class="th-zh">${col.zh}</span><span class="th-en">${col.en}</span><span class="arr">${arr}</span></th>`;
+    }).join('');
+    html+=`<section class="cat" id="sec-${g.key}">
+      <div class="cat-head"><span class="cat-badge" style="background:${COLORS[g.key]}"></span>
+        <h2>${g.key} <span class="en">${esc(meta.en)}</span></h2>
+        <span class="cat-count">${g.items.length} 項 items</span></div>
+      <div class="tbl-scroll"><table>
+        <thead><tr>${heads}</tr></thead><tbody>${rows}</tbody>
+      </table></div></section>`;
+  });
+  host.innerHTML=html;
+  // bind sort
+  host.querySelectorAll('th[data-key]').forEach(th=>{
+    th.addEventListener('click',()=>{
+      const cat=th.dataset.cat,key=th.dataset.key;
+      const s=state.sort[cat];
+      state.sort[cat]=(s&&s.key===key)?{key,dir:-s.dir}:{key,dir:1};
+      const g=groups.find(x=>x.key===cat);
+      g.items.sort((a,b)=>{const va=sortVal(a,key),vb=sortVal(b,key);return va<vb?-1*state.sort[cat].dir:va>vb?1*state.sort[cat].dir:0;});
+      renderSections(groups);renderDashboard(groups);
+    });
+  });
+}
+
+function statusClass(v){
+  if(v==='嚴重滯後') return 'st-sev';
+  if(v==='滯後') return 'st-lag';
+  if(v==='進行中') return 'st-ok';
+  if(v==='未設定') return 'st-na';
+  return '';
+}
+function cellFor(col,it){
+  if(col.type==='title'){
+    let h='';
+    if(it.title_zh) h+=`<div class="zh">${esc(it.title_zh)}</div>`;
+    if(it.title_en) h+=`<div class="en">${esc(it.title_en)}</div>`;
+    if(!it.title_zh&&!it.title_en) h=`<span class="miss">—</span>`;
+    return `<td class="col-title">${h}</td>`;
+  }
+  if(col.key==='ref_no'){
+    return `<td class="ref">${it.ref_no?esc(it.ref_no):'<span class="miss">—</span>'}</td>`;
+  }
+  if(col.key==='sender'){
+    return `<td>${it.sender?esc(it.sender):'<span class="miss">—</span>'}</td>`;
+  }
+  if(col.type==='date'){
+    const v=it[col.key];
+    return `<td class="date ${v?'':'empty'}">${v?esc(v):'<span class="miss">—</span>'}</td>`;
+  }
+  if(col.type==='status'){
+    const v=it.status||'';
+    const cls=statusClass(v);
+    if(!v) return `<td class="status-cell"><span class="status-badge ${cls}">—</span></td>`;
+    return `<td class="status-cell"><span class="status-badge ${cls}"><span class="zh">${esc(v)}</span><span class="en">${esc(ST_EN[v]||'')}</span></span></td>`;
+  }
+  if(col.type==='discipline'){
+    const v=it.discipline||'';
+    if(!v) return `<td><span class="miss">—</span></td>`;
+    const dcol=DISC_COLOR[v]||'#5B7C99';
+    const zh=v.split('/')[0]; const en=v.split('/')[1]||(DISC_EN[v]||'');
+    return `<td><span class="disc-tag" style="background:${dcol}"><span class="dz">${esc(zh)}</span><span class="de">${esc(en)}</span></span></td>`;
+  }
+  if(col.type==='remarks'){
+    const v=it.remarks||'';
+    return `<td>${v?esc(v):'<span class="miss">—</span>'}</td>`;
+  }
+  return `<td>${esc(it[col.key]||'')}</td>`;
+}
+
+/* ---------- Nav ---------- */
+function renderNav(){
+  const host=document.getElementById('nav');
+  let html=`<a href="#dashboard">整體概覽 <span class="en">Overview</span></a>`;
+  CAT_KEYS.forEach(k=>{
+    const meta=DATA.categories.find(c=>c.key===k);
+    html+=`<a href="#sec-${k}">${k} <span class="en">${esc(meta.en.split(' ')[0])}</span></a>`;
+  });
+  host.innerHTML=html;
+}
+
+/* ---------- Init ---------- */
+function getFiltered(){
+  const q=state.search.trim().toLowerCase();
+  const disc=state.discipline;
+  return DATA.categories.map(c=>{
+    let items=c.items.map(it=>({...it,_cat:c.key}));
+    if(disc) items=items.filter(it=>it.discipline===disc);
+    if(q){
+      items=items.filter(it=>(it.ref_no+' '+titleText(it)+' '+(it.sender||'')+' '+
+        (it.discipline||'')+' '+(it.status||'')+' '+(it.remarks||'')).toLowerCase().includes(q));
+    }
+    return {...c,items};
+  });
+}
+function renderDiscFilters(){
+  const host=document.getElementById('discFilters');
+  const present=new Set();
+  DATA.categories.forEach(c=>c.items.forEach(it=>{if(it.discipline)present.add(it.discipline);}));
+  const list=['',...[...present]];
+  host.innerHTML=`<span class="fl-label">範疇篩選 / Filter by Discipline</span>`+
+    list.map(d=>{
+      const active=state.discipline===d;
+      const zh=d?d.split('/')[0]:'全部';
+      const en=d?(d.split('/')[1]||(DISC_EN[d]||'')):'All';
+      const col=d?(DISC_COLOR[d]||'#5B7C99'):'#145da0';
+      const style=active?`background:${col};border-color:${col};color:#fff`
+                        :`background:transparent;color:${col};border-color:${col}`;
+      return `<span class="chip ${active?'active':''}" data-disc="${d}" style="${style}"><span class="zh">${esc(zh)}</span><span class="en-sub">${esc(en)}</span></span>`;
+    }).join('');
+  host.querySelectorAll('.chip').forEach(ch=>{
+    ch.addEventListener('click',()=>{state.discipline=ch.dataset.disc||null;render();});
+  });
+}
+function render(){const g=getFiltered();renderDashboard(g);renderDiscFilters();renderSections(g);}
+function init(){
+  document.getElementById('updated').textContent=DATA.updated;
+  renderNav();
+  render();
+  document.getElementById('search').addEventListener('input',e=>{state.search=e.target.value;render();});
+}
+init();
+</script>
+</body>
+</html>
