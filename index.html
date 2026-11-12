@@ -117,6 +117,18 @@
   .st-na{background:#eef1f4;color:#8896a3}
   .empty{color:var(--muted)}
   .no-res{text-align:center;color:var(--muted);padding:24px}
+  /* ── 「鏈接地址（如適用）」小圖標 / Link icon ──────────────────────
+     不另設欄位：圖標直接嵌在「流程編號」或「工作標題」儲存格的內容裡，
+     點擊後另開該網址頁面；紙本 PDF 匯出時隱藏。
+     純 SVG 外鏈圖標，無可見文字，尺寸 17x17px 不擠壓欄寬。 */
+  .btn-link{display:inline-flex;align-items:center;justify-content:center;
+            width:17px;height:17px;padding:0;margin-left:5px;flex:none;
+            border:1px solid #b9d3ea;border-radius:5px;
+            background:#eef5fb;color:var(--primary-d);
+            cursor:pointer;vertical-align:middle;line-height:1}
+  .btn-link svg{display:block;width:10px;height:10px;pointer-events:none}
+  .btn-link:hover{background:var(--primary-d);border-color:var(--primary-d);color:#fff}
+  .btn-link:focus-visible{outline:2px solid #e8833a;outline-offset:2px}
   footer{max-width:1200px;margin:0 auto;padding:10px 20px 40px;color:var(--muted);font-size:12px;text-align:center}
   @media(max-width:640px){
     .topbar h1{font-size:18px}.topbar h1 .en{font-size:14px}
@@ -180,6 +192,8 @@
   body.pdf-mode .status-badge .zh,body.pdf-mode .status-badge .en{font-size:8px}
   body.pdf-mode .disc-tag{padding:2px 3px;font-size:8px;border-radius:4px}
   body.pdf-mode .disc-tag .dz,body.pdf-mode .disc-tag .de{font-size:8px}
+  /* 紙本不需按鈕：連結欄已取消，按鈕嵌在儲存格內，PDF 直接隱藏即可 */
+  body.pdf-mode .btn-link{display:none}
 </style>
 </head>
 <body>
@@ -245,7 +259,7 @@
 //# sourceMappingURL=html2pdf.bundle.min.js.map
 </script>
 <script>
-const DATA = {"source": "todo-list-20261106.xlsx", "updated": "20261106", "categories": [{"key": "EDMS", "zh": "EDMS", "en": "", "count": 0, "items": []}, {"key": "Email", "zh": "Email", "en": "", "count": 2, "items": [{"row": 2, "ref_no": "", "title_zh": "橋梁變更估價會議情況", "title_en": "Meeting on Bridge Change Valuation", "sender": "PM - WANG Kun", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}, {"row": 3, "ref_no": "", "title_zh": "DSPA對MIA擴建工程最終報告（停機坪環境影響評估）的意見", "title_en": "Follow-up Actions Required: DSPA's comments on Final Report of MIA Expansion Project - EIA for the Apron", "sender": "ERG - Arnold NG", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "機坪/Apron", "remarks": "", "status": "進行中"}]}, {"key": "Letter", "zh": "Letter", "en": "", "count": 6, "items": [{"row": 2, "ref_no": "CAM-PID-ERG-0137/2026", "title_zh": "對臨時變電站位置偏差和場地管理的擔憂", "title_en": "Concern Regarding Location Deviation of Temporary Substation and Site Management", "sender": "ERG", "start": "2026-09-29", "deadline": "2026-10-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後"}, {"row": 3, "ref_no": "CAM-PID-ERG-0149/2026", "title_zh": "回復關於“澳門國際機場擴建工程臨時占用新城填海區E2區部分土地申請事宜”的復函", "title_en": "Reply to the application regarding the temporary occupation of part of the land in Zone E2 of the new urban reclamation area for the MIA expansion project", "sender": "ERG", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}, {"row": 4, "ref_no": "CHEC-MIA-ER-00363", "title_zh": "關於降雨相關工期延長(EOT)審批結果的回覆", "title_en": "Response to the approval result of the Rainfall-Related Extension of Time (EOT)", "sender": "Contractor", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "一般事項/General", "remarks": "", "status": "進行中"}, {"row": 5, "ref_no": "CAM-PID-ERG-0150/2026", "title_zh": "獲土地工務局核准的工程修改計畫文件(修改計畫C2意見回覆)", "title_en": "Amended expansion plan document approved by the Land and Public Works Bureau (Comment Response to Amended Plan C2)", "sender": "ERG", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}, {"row": 6, "ref_no": "CAM-PID-ERG-0155/2026", "title_zh": "材料成本波動評估", "title_en": "Assessment on material cost fluctuation", "sender": "ERG", "start": "2026-11-05", "deadline": "2026-11-12", "person": "", "discipline": "一般事項/General", "remarks": "", "status": "進行中"}, {"row": 7, "ref_no": "CAM-PID-ERG-0153/2026", "title_zh": "向工務局遞交瀝青攪拌站燃氣計劃", "title_en": "Submit gas plan for asphalt mixing plan to DSSCU", "sender": "ERG", "start": "2026-11-06", "deadline": "2026-11-13", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中"}]}]};
+const DATA = {"source": "todo-list-20261113.xlsx", "updated": "20261113", "categories": [{"key": "EDMS", "zh": "EDMS", "en": "", "count": 2, "has_link": true, "items": [{"row": 2, "ref_no": "CHEC-MIA-DWG-00019-A", "title_zh": "集料料倉設計文件報審", "title_en": "Aggregate silo design documents submitted for review", "sender": "", "start": "2026-11-12", "deadline": "2026-11-19", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中", "link": "https://mia.edms.xbang.net:16100/sy_login.do?taskId=76619468"}, {"row": 3, "ref_no": "CHEC-MIA-MST-00069-A", "title_zh": "聯絡橋施工平台施工方案", "title_en": "Construction plan for contact bridge construction platform", "sender": "", "start": "2026-11-12", "deadline": "2026-11-19", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中", "link": "https://mia.edms.xbang.net:16100/sy_login.do?taskId=76615942"}]}, {"key": "Email", "zh": "Email", "en": "", "count": 2, "has_link": false, "items": [{"row": 2, "ref_no": "", "title_zh": "橋梁變更估價會議情況", "title_en": "Meeting on Bridge Change Valuation", "sender": "PM - WANG Kun", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中", "link": ""}, {"row": 3, "ref_no": "", "title_zh": "DSPA對MIA擴建工程最終報告（停機坪環境影響評估）的意見", "title_en": "Follow-up Actions Required: DSPA's comments on Final Report of MIA Expansion Project - EIA for the Apron", "sender": "ERG - Arnold NG", "start": "2026-10-30", "deadline": "2026-11-06", "person": "", "discipline": "機坪/Apron", "remarks": "", "status": "進行中", "link": ""}]}, {"key": "Letter", "zh": "Letter", "en": "", "count": 5, "has_link": true, "items": [{"row": 2, "ref_no": "CAM-PID-ERG-0137/2026", "title_zh": "對臨時變電站位置偏差和場地管理的擔憂", "title_en": "Concern Regarding Location Deviation of Temporary Substation and Site Management", "sender": "ERG", "start": "2026-09-29", "deadline": "2026-10-06", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "嚴重滯後", "link": "https://palasiaconsult-my.sharepoint.com/:b:/p/airport1519/IQCR4OCXXgNTSYltLAHLk_gkAR4J7sPF0K5BBGWw28NPS4U?e=jNP5oj"}, {"row": 3, "ref_no": "CAM-PID-ERG-0155/2026", "title_zh": "材料成本波動評估", "title_en": "Assessment on material cost fluctuation", "sender": "ERG", "start": "2026-11-05", "deadline": "2026-11-12", "person": "", "discipline": "一般事項/General", "remarks": "", "status": "進行中", "link": "https://palasiaconsult-my.sharepoint.com/:b:/p/airport1519/IQD69nB9VGoVTqSifKENzWJ5AfkPSEYPxHD05uj31TaRwxM?e=Oy2IaB"}, {"row": 4, "ref_no": "CAM-PID-ERG-0153/2026", "title_zh": "向工務局遞交瀝青攪拌站燃氣計劃", "title_en": "Submit gas plan for asphalt mixing plan to DSSCU", "sender": "ERG", "start": "2026-11-06", "deadline": "2026-11-13", "person": "", "discipline": "土木/Civil", "remarks": "", "status": "進行中", "link": "https://palasiaconsult-my.sharepoint.com/:b:/p/airport1519/IQAzw93AUOEHQKLrHD6IstniASUdj86foru754-H29BwpKk?e=svijFj"}, {"row": 5, "ref_no": "CAM-PID-ERG-0156/2026", "title_zh": "2027年天然砂預計用量", "title_en": "Estimated natural sand consumption in 2027", "sender": "ERG", "start": "2026-11-10", "deadline": "2026-11-17", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中", "link": "https://palasiaconsult-my.sharepoint.com/:b:/p/airport1519/IQBIq8fHxpVESqyJIgUGH1kOAcxLwAGb1laE8Jw_fVAIsXQ?e=F1hHgT"}, {"row": 6, "ref_no": "CAM-PID-ERG-0157/2026", "title_zh": "就降低跑道島位移監測頻率的回應（由DSPA委託）", "title_en": "Reply Regarding the Reduced Frequency of Runway Island -Displacement Monitoring Commissioned by DSPA", "sender": "ERG", "start": "2026-11-10", "deadline": "2026-11-17", "person": "", "discipline": "填海/Reclamation", "remarks": "", "status": "進行中", "link": "https://palasiaconsult-my.sharepoint.com/:b:/p/airport1519/IQAjLRaJyb-JT5h6RT9YtvINAcgYfI5GmCS50jFrQ0BfaVM?e=0sRv0n"}]}]};
 const COLORS = {EDMS:'#2f6fb0', Email:'#e8833a', Letter:'#7a5ba6'};
 const ST_COLOR = {'進行中':'#2a9d5c','滯後':'#e8a33a','嚴重滯後':'#d9534f','未設定':'#b7c4d1'};
 const ST_EN = {'進行中':'On Track','滯後':'Delayed','嚴重滯後':'Critically Delayed','未設定':'Not Set'};
@@ -285,6 +299,39 @@ const COLS = {
     {key:'remarks', zh:'備註', en:'Remarks', type:'remarks'}
   ]
 };
+
+/* 「鏈接地址（如適用）/ Link (if applicable)」─────────────────────────
+   不另設欄位：有連結的項目直接在「流程編號」或「工作標題」儲存格內容裡
+   附一個小按鈕，點擊後另開該網址頁面。表格欄數固定為 7 / 8 / 8。 */
+function safeUrl(u){
+  if(!u) return '';
+  const s=String(u).trim();
+  if(s.toLowerCase().startsWith('www.')) return 'https://'+s;
+  // 只允許 http(s)，擋掉 javascript: / data: 等危險協定
+  return /^https?:\/\//i.test(s) ? s : '';
+}
+function openLink(u){
+  const url=safeUrl(u);
+  if(!url){ alert('連結地址無效 / Invalid link address'); return; }
+  const w=window.open(url,'_blank');
+  if(w){ try{ w.opener=null; }catch(_){} }
+  else  { alert('瀏覽器封鎖了彈出視窗，請允許本頁開啟彈出視窗。\nPopup blocked; please allow pop-ups for this page.'); }
+}
+/* 純 SVG 外鏈圖標（無文字）；pointer-events:none 讓點擊一律落在 button 上 */
+const LINK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+  + 'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+  + '<path d="M15 3h6v6"/><path d="M10 14 21 3"/>'
+  + '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>';
+/* 產生嵌在儲存格裡的小圖標（無連結則回傳空字串） */
+function linkBtn(it){
+  const u=safeUrl(it && it.link);
+  if(!u) return '';
+  return `<button type="button" class="btn-link" data-url="${esc(u)}" `
+       + `title="${esc(u)}" aria-label="開啟連結 / Open Link">${LINK_ICON}</button>`;
+}
+/* 按鈕位置：有流程編號 -> 附在編號後；沒有編號 -> 附在工作標題後 */
+function btnInRef(it){ return !!(it && it.ref_no) && !!safeUrl(it.link); }
+function btnInTitle(it){ return !(it && it.ref_no) && !!safeUrl(it.link); }
 
 const state = {search:'', disciplines:[], statuses:[], sort:{}};
 
@@ -427,12 +474,13 @@ function renderSections(groups){
   groups.forEach(g=>{
     if(!g.items.length){return;}
     const meta=DATA.categories.find(c=>c.key===g.key);
+    const cols=COLS[g.key]||[];
     let rows=g.items.map(it=>{
-      const cells=COLS[g.key].map(col=>cellFor(col,it)).join('');
+      const cells=cols.map(col=>cellFor(col,it)).join('');
       return `<tr>${cells}</tr>`;
     }).join('');
-    if(!rows) rows=`<tr><td colspan="${COLS[g.key].length}" class="no-res">無符合項目 No matching items</td></tr>`;
-    const heads=COLS[g.key].map(col=>{
+    if(!rows) rows=`<tr><td colspan="${cols.length}" class="no-res">無符合項目 No matching items</td></tr>`;
+    const heads=cols.map(col=>{
       const s=state.sort[g.key];
       const arr=(s&&s.key===col.key)?(s.dir>0?'▲':'▼'):'';
       const cls=col.key==='title'?' col-title':'';
@@ -473,10 +521,12 @@ function cellFor(col,it){
     if(it.title_zh) h+=`<div class="zh">${esc(it.title_zh)}</div>`;
     if(it.title_en) h+=`<div class="en">${esc(it.title_en)}</div>`;
     if(!it.title_zh&&!it.title_en) h=`<span class="miss">—</span>`;
+    if(btnInTitle(it)) h+=linkBtn(it);   // 無流程編號的項目，按鈕附在工作標題
     return `<td class="col-title">${h}</td>`;
   }
   if(col.key==='ref_no'){
-    return `<td class="ref">${it.ref_no?esc(it.ref_no):'<span class="miss">—</span>'}</td>`;
+    const t=it.ref_no?esc(it.ref_no):'<span class="miss">—</span>';
+    return `<td class="ref">${t}${btnInRef(it)?linkBtn(it):''}</td>`;
   }
   if(col.key==='sender'){
     return `<td>${it.sender?esc(it.sender):'<span class="miss">—</span>'}</td>`;
@@ -649,6 +699,13 @@ function init(){
   if(br) br.addEventListener('click',()=>{const s2=allFilterSets();state.disciplines=s2.d;state.statuses=s2.s;render();});
   const bp=document.getElementById('btnPdf');
   if(bp) bp.addEventListener('click',exportPDF);
+  // 連結按鈕用事件委托：篩選 / 排序導致表格重繪後依然有效
+  document.addEventListener('click',e=>{
+    const b=(e.target && e.target.closest) ? e.target.closest('.btn-link') : null;
+    if(!b) return;
+    e.preventDefault(); e.stopPropagation();
+    openLink(b.dataset.url);
+  });
 }
 init();
 </script>
